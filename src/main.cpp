@@ -108,6 +108,12 @@ int main()
           //Call ProcessMeasurment(meas_package) for Kalman filter
     	  ukf.ProcessMeasurement(meas_package);    	  
 
+        if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+          cout << "NIS_laser " << ukf.NIS_laser_ << endl;
+        } else if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+          cout << "NIS_radar " << ukf.NIS_radar_ << endl;
+        }
+
     	  //Push the current estimated x,y positon from the Kalman filter's state vector
 
     	  VectorXd estimate(4);
@@ -136,6 +142,8 @@ int main()
           msgJson["rmse_y"] =  RMSE(1);
           msgJson["rmse_vx"] = RMSE(2);
           msgJson["rmse_vy"] = RMSE(3);
+          msgJson["NIS_radar"] = ukf.NIS_radar_;
+          msgJson["NIS_laser"] = ukf.NIS_laser_;
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
           // std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);

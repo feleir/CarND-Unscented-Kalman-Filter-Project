@@ -17,27 +17,6 @@ Once the install for uWebSocketIO is complete, the main program can be built and
 
 Tips for setting up your environment can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
 
-Note that the programs that need to be written to accomplish the project are src/ukf.cpp, src/ukf.h, tools.cpp, and tools.h
-
-The program main.cpp has already been filled out, but feel free to modify it.
-
-Here is the main protcol that main.cpp uses for uWebSocketIO in communicating with the simulator.
-
-
-INPUT: values provided by the simulator to the c++ program
-
-["sensor_measurement"] => the measurment that the simulator observed (either lidar or radar)
-
-
-OUTPUT: values provided by the c++ program to the simulator
-
-["estimate_x"] <= kalman filter estimated position x
-["estimate_y"] <= kalman filter estimated position y
-["rmse_x"]
-["rmse_y"]
-["rmse_vx"]
-["rmse_vy"]
-
 ---
 
 ## Other Important Dependencies
@@ -60,33 +39,59 @@ OUTPUT: values provided by the c++ program to the simulator
 4. Run it: `./UnscentedKF` Previous versions use i/o from text files.  The current state uses i/o
 from the simulator.
 
-## Editor Settings
+# [Rubric](https://review.udacity.com/#!/rubrics/783/view)
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+## Your code should compile.
+Code must compile without errors with cmake and make, I did not change `CMakeLists.txt` and the code compiles as expected, after installing the requirements.
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+```
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/feleir/Desktop/SelfDriving/CarND-Unscented-Kalman-Filter-Project/build
+[ 25%] Building CXX object CMakeFiles/UnscentedKF.dir/src/ukf.cpp.o
+[ 50%] Building CXX object CMakeFiles/UnscentedKF.dir/src/main.cpp.o
+[ 75%] Building CXX object CMakeFiles/UnscentedKF.dir/src/tools.cpp.o
+[100%] Linking CXX executable UnscentedKF
+ld: warning: directory not found for option '-L/usr/local/Cellar/libuv/1*/lib'
+[100%] Built target UnscentedKF
+```
 
-## Code Style
+## px, py, vx, vy output coordinates must have an RMSE <= [.09, .10, .40, .30] when using the file: "obj_pose-laser-radar-synthetic-input.txt", which is the same data file the simulator uses for Dataset 1.
 
-Please stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html) as much as possible.
+For the dataset 1 the obtained accuracy is.
 
-## Generating Additional Data
+RMSE = [0.0739, 0.0824, 0.3107, 0.2832] <= [.09, .10, .40, .30]
+![Dataset 1](images/ukf_dataset1.png)
 
-This is optional!
+For EKF the result was [0.0974, 0.0855, 0.4517, 0.4404] so there was a great improvement.
 
-If you'd like to generate your own radar and lidar data, see the
-[utilities repo](https://github.com/udacity/CarND-Mercedes-SF-Utilities) for
-Matlab scripts that can generate additional data.
+For the dataset 2 the obtained accuracy is, with Vx greater than the expected 0.40
 
-## Project Instructions and Rubric
+RMSE = [0.0762, 0.0739, 0.5086, 0.2793] <= [.09, .10, .40, .30]
+![Dataset 1](images/ukf_dataset2.png)
 
-This information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/c3eb3583-17b2-4d83-abf7-d852ae1b9fff/concepts/f437b8b0-f2d8-43b0-9662-72ac4e4029c1)
-for instructions and the project rubric.
+For EKF the result was  [0.0726, 0.0965, 0.4216, 0.4932] so there was improvement in all values but Vx.
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+## Your Sensor Fusion algorithm follows the general processing flow as taught in the preceding lessons.
 
+While you may be creative with your implementation, there is a well-defined set of steps that must take place in order to successfully build a Kalman Filter. As such, your project should follow the algorithm as described in the preceding lesson.
+
+UKF implementation can be found in [src/ukf.cpp](./src/ukf.cpp), following the algorithm taught in the lessons.
+
+## Your Kalman Filter algorithm handles the first measurements appropriately.
+
+Your algorithm should use the first measurements to initialize the state vectors and covariance matrices.
+
+Value initialization can be found in [src/ukf.cpp](./src/ukf.cpp#L15-L75), and matrix initialization takes into account the sensor type and initialez state and covariance matrixes in [src/ukf.cpp](./src/ukf.cpp#L93-L125).
+
+## Your Kalman Filter algorithm first predicts then updates.
+
+Upon receiving a measurement after the first, the algorithm should predict object position to the current timestep and then update the prediction using the new measurement.
+
+Timestamp update can be found in [src/ukf.cpp](./src/ukf.cpp#L129-L131), then calling *Prediction* and finally Update based on the sensor type.
+
+## Your Kalman Filter can handle radar and lidar measurements.
+
+Your algorithm sets up the appropriate matrices given the type of measurement and calls the correct measurement function for a given sensor type.
+
+*UpdateLidar* function sets the appropiate values for Lidar measurements, found in [src/ukf.cpp](.src/ukf.cpp#L260), so does the function *UpdateRadar* in [src/ukf.cpp](./src/ukf.cpp#L339)
